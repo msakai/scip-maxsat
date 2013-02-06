@@ -46,13 +46,13 @@ int read_wcnf(SCIP *scip, const char *filename)
 
 BODY:
     xs = new SCIP_VAR*[1+nv];
-    SCIP_CALL( SCIPsetObjsense(scip, SCIP_OBJSENSE_MINIMIZE) );
+    SCIP_CALL_ABORT( SCIPsetObjsense(scip, SCIP_OBJSENSE_MINIMIZE) );
     for (int i = 1; i <= nv; i++) {
         SCIP_VAR *x = NULL;
         char name[128];
         snprintf(name, sizeof(name), "x%d", i);
-        SCIP_CALL( SCIPcreateVarBasic(scip, &x, name, 0, 1, 0, SCIP_VARTYPE_BINARY) );
-        SCIP_CALL( SCIPaddVar(scip, x) );
+        SCIP_CALL_ABORT( SCIPcreateVarBasic(scip, &x, name, 0, 1, 0, SCIP_VARTYPE_BINARY) );
+        SCIP_CALL_ABORT( SCIPaddVar(scip, x) );
         xs[i] = x;
     }
 
@@ -74,12 +74,12 @@ BODY:
             if (lit > 0) {
                 int v = lit;
                 // obj += cost*(1 - v)
-                SCIP_CALL( SCIPaddObjoffset(scip, cost) ); // causes SEGV
-                SCIP_CALL( SCIPaddVarObj(scip, xs[v], - cost) );
+                SCIP_CALL_ABORT( SCIPaddObjoffset(scip, cost) ); // causes SEGV
+                SCIP_CALL_ABORT( SCIPaddVarObj(scip, xs[v], - cost) );
             } else {
                 int v = - lit;
                 // obj += cost*v
-                SCIP_CALL( SCIPaddVarObj(scip, xs[v], cost) );
+                SCIP_CALL_ABORT( SCIPaddVarObj(scip, xs[v], cost) );
             }
             continue;
         }
@@ -88,30 +88,30 @@ BODY:
         char name[128];
         snprintf(name, sizeof(name), "c%d", i);
         SCIP_CONS* cons = NULL;
-        SCIP_CALL( SCIPcreateConsBasicLinear(scip, &cons, name, 0, NULL, NULL, -SCIPinfinity(scip), SCIPinfinity(scip)) );
+        SCIP_CALL_ABORT( SCIPcreateConsBasicLinear(scip, &cons, name, 0, NULL, NULL, -SCIPinfinity(scip), SCIPinfinity(scip)) );
 
         if (cost != top) {
             SCIP_VAR *r = NULL;
             snprintf(name, sizeof(name), "r%d", i);
-            SCIP_CALL( SCIPcreateVarBasic(scip, &r, name, 0, 1, cost, SCIP_VARTYPE_BINARY) );
-            SCIP_CALL( SCIPaddVar(scip, r) );
-            SCIP_CALL( SCIPaddCoefLinear(scip, cons, r, 1.0) );
+            SCIP_CALL_ABORT( SCIPcreateVarBasic(scip, &r, name, 0, 1, cost, SCIP_VARTYPE_BINARY) );
+            SCIP_CALL_ABORT( SCIPaddVar(scip, r) );
+            SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, r, 1.0) );
         }
 
         int lb = 1;
         for (std::vector<int>::iterator j = lits.begin(); j != lits.end(); j++) {
             int lit = *j;
             if (lit > 0) {
-                SCIP_CALL( SCIPaddCoefLinear(scip, cons, xs[lit], 1.0) );
+                SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, xs[lit], 1.0) );
             } else {
-                SCIP_CALL( SCIPaddCoefLinear(scip, cons, xs[-lit], -1.0) );
+                SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, xs[-lit], -1.0) );
                 lb--;
             }
         }
 
-        SCIP_CALL( SCIPchgLhsLinear(scip, cons, lb) );
-        SCIP_CALL( SCIPaddCons(scip, cons) );
-        SCIP_CALL( SCIPreleaseCons(scip, &cons) );
+        SCIP_CALL_ABORT( SCIPchgLhsLinear(scip, cons, lb) );
+        SCIP_CALL_ABORT( SCIPaddCons(scip, cons) );
+        SCIP_CALL_ABORT( SCIPreleaseCons(scip, &cons) );
     }
 
     fclose(file);
@@ -172,22 +172,22 @@ int main(int argc, char **argv)
     char *filename = argv[1];
 
     SCIP *scip = NULL;
-    SCIP_CALL( SCIPcreate(&scip) );
-    SCIP_CALL( SCIPincludeDefaultPlugins(scip) );
-    SCIP_CALL( SCIPincludeEventHdlrBestsol(scip) );
+    SCIP_CALL_ABORT( SCIPcreate(&scip) );
+    SCIP_CALL_ABORT( SCIPincludeDefaultPlugins(scip) );
+    SCIP_CALL_ABORT( SCIPincludeEventHdlrBestsol(scip) );
 
     SCIP_MESSAGEHDLR *messagehdlr = NULL;
-    SCIP_CALL( SCIPmessagehdlrCreate(&messagehdlr, TRUE, NULL, FALSE,
+    SCIP_CALL_ABORT( SCIPmessagehdlrCreate(&messagehdlr, TRUE, NULL, FALSE,
       messageWarning, messageDialog, messageInfo,
       NULL, NULL) );
-    SCIP_CALL( SCIPsetMessagehdlr(scip, messagehdlr) );
+    SCIP_CALL_ABORT( SCIPsetMessagehdlr(scip, messagehdlr) );
 
     SCIPprintVersion(scip, NULL);
 
-    SCIP_CALL( SCIPcreateProbBasic(scip, filename) );
+    SCIP_CALL_ABORT( SCIPcreateProbBasic(scip, filename) );
     int nv = read_wcnf(scip, filename);
 
-    SCIP_CALL( SCIPsolve(scip) );
+    SCIP_CALL_ABORT( SCIPsolve(scip) );
 
     SCIP_STATUS status = SCIPgetStatus(scip);
     switch (status) {
