@@ -75,11 +75,11 @@ BODY:
                 int v = lit;
                 // obj += cost*(1 - v)
                 SCIP_CALL( SCIPaddObjoffset(scip, cost) ); // causes SEGV
-                SCIP_CALL( SCIPchgVarObj(scip, xs[v], SCIPvarGetObj(xs[v]) - cost) );
+                SCIP_CALL( SCIPaddVarObj(scip, xs[v], - cost) );
             } else {
                 int v = - lit;
                 // obj += cost*v
-                SCIP_CALL( SCIPchgVarObj(scip, xs[v], SCIPvarGetObj(xs[v]) + cost) );
+                SCIP_CALL( SCIPaddVarObj(scip, xs[v], cost) );
             }
             continue;
         }
