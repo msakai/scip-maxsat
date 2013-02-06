@@ -20,6 +20,11 @@ int read_wcnf(SCIP *scip, const char *filename)
     int64_t top = -1;
     bool isWCNF = 0;
 
+    if (!file) {
+        fprintf(stderr, "failed to open file: %s\n", filename);
+        exit(1);
+    }
+
     while (1) {
         fgets(line, sizeof(line), file);
         if (line[0] == 'c')
