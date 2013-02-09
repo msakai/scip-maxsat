@@ -45,6 +45,10 @@ int read_wcnf(SCIP *scip, const char *filename)
     }
 
 BODY:
+    SCIP_VAR *x0 = NULL;
+    SCIP_CALL_ABORT( SCIPcreateVarBasic(scip, &x0, "x0", 1, 1, 0, SCIP_VARTYPE_BINARY) );
+    SCIP_CALL_ABORT( SCIPaddVar(scip, x0) );
+
     xs = new SCIP_VAR*[1+nv];
     SCIP_CALL_ABORT( SCIPsetObjsense(scip, SCIP_OBJSENSE_MINIMIZE) );
     for (int i = 1; i <= nv; i++) {
@@ -68,13 +72,12 @@ BODY:
             lits.push_back(lit);
         }
 
-#if 0
         if (cost != top && lits.size() == 1) {
             int lit = lits[0];
             if (lit > 0) {
                 int v = lit;
                 // obj += cost*(1 - v)
-                SCIP_CALL_ABORT( SCIPaddObjoffset(scip, cost) ); // causes SEGV
+                SCIP_CALL_ABORT( SCIPaddVarObj(scip, x0, cost) );
                 SCIP_CALL_ABORT( SCIPaddVarObj(scip, xs[v], - cost) );
             } else {
                 int v = - lit;
@@ -83,7 +86,6 @@ BODY:
             }
             continue;
         }
-#endif
 
         char name[128];
         snprintf(name, sizeof(name), "c%d", i);
