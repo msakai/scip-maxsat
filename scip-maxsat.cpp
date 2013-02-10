@@ -121,29 +121,24 @@ BODY:
 }
 
 static
-void print_comment(FILE* file, const char* s)
-{
-    fprintf(file, "c %s", s);
-    fflush(file);
-}
-
-static
 SCIP_DECL_MESSAGEWARNING(messageWarning)
 {
-    fputs("WARNING: ", file);
-    print_comment(file, msg);
+    fprintf(file, "c WARNING: %s", msg);
+    fflush(file);
 }
 
 static
 SCIP_DECL_MESSAGEDIALOG(messageDialog)
 {
-    print_comment(file, msg);
+    fprintf(file, "c %s", msg);
+    fflush(file);
 }
 
 static
 SCIP_DECL_MESSAGEINFO(messageInfo)
 {
-    print_comment(file, msg);
+    fprintf(file, "c %s", msg);
+    fflush(file);
 }
 
 static
