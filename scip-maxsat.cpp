@@ -1,3 +1,5 @@
+#define __STDC_FORMAT_MACROS
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdint.h>
