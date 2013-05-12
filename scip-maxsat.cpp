@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
+#include <math.h>
 #include <vector>
 
 #include "scip/scip.h"
@@ -290,7 +291,7 @@ SCIP_DECL_EVENTEXEC(eventExecBestsol)
    
    bestsol = SCIPgetBestSol(scip);
    assert(bestsol != NULL);
-   solvalue = SCIPgetSolOrigObj(scip, bestsol);
+   solvalue = llround(SCIPgetSolOrigObj(scip, bestsol));
    
    /* print best solution value */   
    printf("o %"PRId64 "\n", solvalue);
