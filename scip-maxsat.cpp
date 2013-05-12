@@ -164,6 +164,8 @@ void print_model(SCIP *scip, int nv)
     puts(""); // new line
 }
 
+SCIP *scip_orig;
+
 int main(int argc, char **argv)
 {
     if (1 >= argc) {
@@ -174,6 +176,7 @@ int main(int argc, char **argv)
 
     SCIP *scip = NULL;
     SCIP_CALL_ABORT( SCIPcreate(&scip) );
+    scip_orig = scip;
     SCIP_CALL_ABORT( SCIPincludeDefaultPlugins(scip) );
     SCIP_CALL_ABORT( SCIPincludeEventHdlrBestsol(scip) );
 
@@ -288,6 +291,8 @@ SCIP_DECL_EVENTEXEC(eventExecBestsol)
    assert(SCIPeventGetType(event) == SCIP_EVENTTYPE_BESTSOLFOUND);
 
    SCIPdebugMessage("exec method of event handler for best solution found\n");
+
+   if (scip != scip_orig) return SCIP_OKAY;
    
    bestsol = SCIPgetBestSol(scip);
    assert(bestsol != NULL);
