@@ -1,0 +1,23 @@
+diff -upr soplex-1.7.1.orig/src/spxalloc.h soplex-1.7.1/src/spxalloc.h
+--- soplex-1.7.1.orig/src/spxalloc.h	2013-01-03 19:54:26.000000000 +0900
++++ soplex-1.7.1/src/spxalloc.h	2013-05-28 20:33:44.668715016 +0900
+@@ -59,7 +59,8 @@ inline void spx_alloc(T& p, int n)
+    {
+       MSG_ERROR( spxout << "EMALLC01 malloc: Out of memory - cannot allocate " 
+                         << sizeof(*p) * n << " bytes" << std::endl; )
+-      throw(SPxMemoryException("XMALLC01 malloc: Could not allocate enough memory") );
++      exit(1);
++//      throw(SPxMemoryException("XMALLC01 malloc: Could not allocate enough memory") );
+    }
+ }
+ 
+@@ -82,7 +83,8 @@ inline void spx_realloc(T& p, int n)
+    {
+       MSG_ERROR( spxout << "EMALLC02 realloc: Out of memory - cannot allocate "
+                         << sizeof(*p) * n << " bytes" << std::endl; )
+-      throw(SPxMemoryException("XMALLC02 realloc: Could not allocate enough memory") );
++      exit(1);
++//      throw(SPxMemoryException("XMALLC02 realloc: Could not allocate enough memory") );
+    }
+    p=pp;
+ }
