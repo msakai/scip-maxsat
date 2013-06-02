@@ -27,9 +27,12 @@ and the access of detailed information down to the guts of the solver.
 About Max-SAT 2013 Submission
 -----------------------------
 
-Submitted binary is linked with following version of software.
+Submitted binary is linked with following version of software and
+patches.
 
 * SCIP Optimization Suite 3.0.1
     * SCIP 3.0.1
     * SoPlex 1.7.1
     * Zimpl 3.3.1
+* soplex-1.7.1-exit-on-alloc-error.patch
+* scip-3.0.1-cons-and.patch
