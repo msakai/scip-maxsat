@@ -8,6 +8,10 @@
 #include <math.h>
 #include <vector>
 
+#include <unistd.h>
+#include <sys/time.h>
+#include <sys/resource.h>
+
 #include "scip/scip.h"
 #include "scip/scipdefplugins.h"
 
@@ -164,7 +168,26 @@ void print_model(SCIP *scip, int nv)
     puts(""); // new line
 }
 
+static
+int64_t get_wc_time()
+{
+  struct timeval r;
+  gettimeofday (&r, NULL);
+  return (((int64_t) r.tv_sec) * 1000000) + r.tv_usec;
+}
+
+static
+int64_t get_cpu_time()
+{
+  struct rusage usage;
+  getrusage(RUSAGE_SELF, &usage);
+  return (((int64_t) usage.ru_utime.tv_sec) * 1000000) + usage.ru_utime.tv_usec +
+         (((int64_t) usage.ru_stime.tv_sec) * 1000000) + usage.ru_stime.tv_usec;
+}
+
 SCIP *scip_orig;
+
+int64_t start_wc_time;
 
 int main(int argc, char **argv)
 {
@@ -173,6 +196,7 @@ int main(int argc, char **argv)
         exit(1);
     }
     char *filename = argv[1];
+    start_wc_time = get_wc_time();
 
     SCIP *scip = NULL;
     SCIP_CALL_ABORT( SCIPcreate(&scip) );
@@ -298,8 +322,10 @@ SCIP_DECL_EVENTEXEC(eventExecBestsol)
    assert(bestsol != NULL);
    solvalue = llround(SCIPgetSolOrigObj(scip, bestsol));
    
-   /* print best solution value */   
-   printf("o %"PRId64 "\n", solvalue);
+   /* print best solution value */
+   int64_t now = get_wc_time();
+   int64_t cpu_time = get_cpu_time();
+   printf("o %"PRId64" wctime=%fs cputime=%fs\n", solvalue, (now - start_wc_time) / 1000000.0, cpu_time / 1000000.0);
    fflush(stdout);
    
    return SCIP_OKAY;
