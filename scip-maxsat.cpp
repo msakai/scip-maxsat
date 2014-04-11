@@ -15,6 +15,8 @@ extern SCIP_RETCODE SCIPincludeEventHdlrBestsol(SCIP* scip);
 
 SCIP_VAR **xs;
 
+bool use_indicator = true;
+
 static
 int read_wcnf(SCIP *scip, const char *filename)
 {
@@ -94,28 +96,53 @@ BODY:
         char name[128];
         snprintf(name, sizeof(name), "c%d", i);
         SCIP_CONS* cons = NULL;
-        SCIP_CALL_ABORT( SCIPcreateConsBasicLinear(scip, &cons, name, 0, NULL, NULL, -SCIPinfinity(scip), SCIPinfinity(scip)) );
 
-        if (cost != top) {
-            SCIP_VAR *r = NULL;
-            snprintf(name, sizeof(name), "r%d", i);
-            SCIP_CALL_ABORT( SCIPcreateVarBasic(scip, &r, name, 0, 1, cost, SCIP_VARTYPE_BINARY) );
-            SCIP_CALL_ABORT( SCIPaddVar(scip, r) );
-            SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, r, 1.0) );
-        }
+        if (use_indicator && cost != top) {
+            SCIP_VAR *s = NULL;
+            snprintf(name, sizeof(name), "s%d", i);
+            SCIP_CALL_ABORT( SCIPcreateVarBasic(scip, &s, name, 0, 1, - cost, SCIP_VARTYPE_BINARY) );
+            SCIP_CALL_ABORT( SCIPaddVar(scip, s) );
+            SCIP_CALL_ABORT( SCIPaddVarObj(scip, x0, cost) );
 
-        int lb = 1;
-        for (std::vector<int>::iterator j = lits.begin(); j != lits.end(); j++) {
-            int lit = *j;
-            if (lit > 0) {
-                SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, xs[lit], 1.0) );
-            } else {
-                SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, xs[-lit], -1.0) );
-                lb--;
+            std::vector<SCIP_VAR*> vars;
+            std::vector<SCIP_Real> vals;
+            SCIP_Real ub = -1.0;
+            for (std::vector<int>::iterator j = lits.begin(); j != lits.end(); j++) {
+                int lit = *j;
+                vars.push_back(xs[abs(lit)]);
+                if (lit > 0) {
+                    vals.push_back(-1.0);
+                } else {
+                    vals.push_back(1.0);
+                    ub++;
+                }
             }
+            SCIP_CALL_ABORT( SCIPcreateConsBasicIndicator(scip, &cons, name, s, vars.size(), vars.data(), vals.data(), ub) );
+        } else {
+            SCIP_CALL_ABORT( SCIPcreateConsBasicLinear(scip, &cons, name, 0, NULL, NULL, -SCIPinfinity(scip), SCIPinfinity(scip)) );
+    
+            if (cost != top) {
+                SCIP_VAR *r = NULL;
+                snprintf(name, sizeof(name), "r%d", i);
+                SCIP_CALL_ABORT( SCIPcreateVarBasic(scip, &r, name, 0, 1, cost, SCIP_VARTYPE_BINARY) );
+                SCIP_CALL_ABORT( SCIPaddVar(scip, r) );
+                SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, r, 1.0) );
+            }
+    
+            int lb = 1;
+            for (std::vector<int>::iterator j = lits.begin(); j != lits.end(); j++) {
+                int lit = *j;
+                if (lit > 0) {
+                    SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, xs[lit], 1.0) );
+                } else {
+                    SCIP_CALL_ABORT( SCIPaddCoefLinear(scip, cons, xs[-lit], -1.0) );
+                    lb--;
+                }
+            }
+    
+            SCIP_CALL_ABORT( SCIPchgLhsLinear(scip, cons, lb) );
         }
 
-        SCIP_CALL_ABORT( SCIPchgLhsLinear(scip, cons, lb) );
         SCIP_CALL_ABORT( SCIPaddCons(scip, cons) );
         SCIP_CALL_ABORT( SCIPreleaseCons(scip, &cons) );
     }
